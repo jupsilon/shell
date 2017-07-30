@@ -36,6 +36,6 @@ add_custom_command(
   )
 
 add_custom_target(run
-  COMMAND ./shell
+  COMMAND weston
   DEPENDS shell
   )
