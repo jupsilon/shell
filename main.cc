@@ -12,6 +12,8 @@
 #include <EGL/egl.h>
 #include <GL/gl.h>
 
+#include "weston-desktop-shell-client.h"
+
 template <typename T, typename D>
 inline auto ptr(T* p, D d) {
   return std::unique_ptr<T, D>(p, d);
