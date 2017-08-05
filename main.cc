@@ -24,16 +24,16 @@ inline auto ptr(T* p) {
   return ptr(p, [](T* p) { wl_proxy_destroy(reinterpret_cast<wl_proxy*>(p)); });
 }
 
-template <typename T> constexpr wl_interface const* const itf = nullptr;
-template <> constexpr wl_interface const* const itf<wl_compositor>        = &wl_compositor_interface;
-template <> constexpr wl_interface const* const itf<wl_shell>             = &wl_shell_interface;
-template <> constexpr wl_interface const* const itf<wl_seat>              = &wl_seat_interface;
-template <> constexpr wl_interface const* const itf<wl_output>            = &wl_output_interface;
-template <> constexpr wl_interface const* const itf<weston_desktop_shell> = &weston_desktop_shell_interface;
+template <typename T> constexpr wl_interface const* const iface = nullptr;
+template <> constexpr wl_interface const* const iface<wl_compositor>        = &wl_compositor_interface;
+template <> constexpr wl_interface const* const iface<wl_shell>             = &wl_shell_interface;
+template <> constexpr wl_interface const* const iface<wl_seat>              = &wl_seat_interface;
+template <> constexpr wl_interface const* const iface<wl_output>            = &wl_output_interface;
+template <> constexpr wl_interface const* const iface<weston_desktop_shell> = &weston_desktop_shell_interface;
 
 template <typename T>
 inline auto global_bind(wl_display* display, uint32_t version) {
-  static_assert(nullptr != itf<T>, "itf not defined");
+  static_assert(nullptr != iface<T>, "iface not defined");
 
   using userdata_type = std::tuple<T*, uint32_t>;
   auto registry = ptr(wl_display_get_registry(display));
@@ -44,15 +44,15 @@ inline auto global_bind(wl_display* display, uint32_t version) {
 		 char const* interface,
 		 uint32_t version)
     {
-      if (0 == std::strcmp(interface, itf<T>->name)) {
+      if (0 == std::strcmp(interface, iface<T>->name)) {
 	auto& userdata = *(reinterpret_cast<userdata_type*>(data));
 
-	std::get<0>(userdata)
-	= reinterpret_cast<T*>(wl_registry_bind(registry,
-						name,
-						itf<T>,
-						std::min(version,
-							 std::get<1>(userdata))));
+	auto& ptr = std::get<0>(userdata);
+	ptr = reinterpret_cast<T*>(wl_registry_bind(registry,
+						    name,
+						    iface<T>,
+						    std::min(version,
+							     std::get<1>(userdata))));
       }
     },
     .global_remove = [](void* data,
